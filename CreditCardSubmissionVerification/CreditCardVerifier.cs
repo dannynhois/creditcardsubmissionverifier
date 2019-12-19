@@ -39,8 +39,8 @@ namespace CreditCardSubmissionVerification
 
 
             // find pdf files for CC number if it exists
-            var pdfFiles = new List<string>(Directory.EnumerateFiles(RootPath, $"{DatePrefix}*CC*.pdf", SearchOption.AllDirectories));
-            var pdfRegExpression = @"\d{8}.*[cC]{2}.*\d{6}.*pdf";
+            var pdfFiles = new List<string>(Directory.EnumerateFiles(RootPath, $"{DatePrefix}*.pdf", SearchOption.AllDirectories));
+            var pdfRegExpression = @"\d{8}.*\d{6}.*pdf";
             var filteredFiles = pdfFiles.Where(x => Regex.IsMatch(x, pdfRegExpression)).ToList();
 
             excelList.ForEach(file =>
