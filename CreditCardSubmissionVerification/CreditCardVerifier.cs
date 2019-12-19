@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OfficeOpenXml;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -19,6 +20,12 @@ namespace CreditCardSubmissionVerification
             DatePrefix = "20191003";
             RootPath = @"G:\My Drive";
             SaveFileName = $"{Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)}\\GDriveFinanceMaster.xlsx";
+        }
+        public CreditCardVerifier(string datePrefix, string rootPath, string savePath)
+        {
+            DatePrefix = datePrefix;
+            RootPath = rootPath;
+            SaveFileName = Path.Join(savePath, "CreditCardReports.xlsx");
         }
         public void PopulateData()
         {
@@ -44,6 +51,38 @@ namespace CreditCardSubmissionVerification
 
             // sort list
             Results = excelList.OrderBy(x => x.HasBothPdfAndExcel).ThenBy(x => x.CreditCardNumber).ToList();
+        }
+        public void CreateExcelFile()
+        {
+            using (var p = new ExcelPackage())
+            {
+                //A workbook must have at least on cell, so lets add one... 
+                var ws = p.Workbook.Worksheets.Add("Results");
+                //Create Heading
+                ws.Cells[1, 1].Value = "CreditCreditCardNumber";
+                ws.Cells[1, 2].Value = "HasBothPdfAndExcel";
+                ws.Cells[1, 3].Value = "ExcelFileName";
+                ws.Cells[1, 4].Value = "PdfFileName";
+                ws.Cells[1, 5].Value = "ExcelFilePath";
+                ws.Cells[1, 6].Value = "PdfFilePath";
+
+                //create records
+                var currentRow = 2;
+                Results.ForEach(result =>
+                {
+                    ws.Cells[currentRow, 1].Value = result.CreditCardNumber;
+                    ws.Cells[currentRow, 2].Value = result.HasBothPdfAndExcel;
+                    ws.Cells[currentRow, 3].Value = result.ExcelFileName; 
+                    ws.Cells[currentRow, 4].Value = result.PdfFileName;
+                    ws.Cells[currentRow, 5].Value = result.ExcelFilePath;
+                    ws.Cells[currentRow, 6].Value = result.PdfFilePath;
+                    currentRow++;
+                });
+
+                ws.Cells.AutoFitColumns();
+                //Save the new workbook. We haven't specified the filename so use the Save as method.
+                p.SaveAs(new FileInfo(SaveFileName));
+            }
         }
     }
     public class FileSummary
