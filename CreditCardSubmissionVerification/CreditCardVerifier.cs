@@ -17,7 +17,7 @@ namespace CreditCardSubmissionVerification
 
         public CreditCardVerifier()
         {
-            DatePrefix = "20191003";
+            DatePrefix = "201910";
             RootPath = @"G:\My Drive";
             SaveFileName = $"{Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)}\\GDriveFinanceMaster.xlsx";
         }
@@ -25,22 +25,24 @@ namespace CreditCardSubmissionVerification
         {
             DatePrefix = datePrefix;
             RootPath = rootPath;
-            SaveFileName = Path.Join(savePath, "CreditCardReports.xlsx");
+            var nowTimestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
+            var fileName = $"CreditCardReport-{nowTimestamp}.xlsx";
+            SaveFileName = Path.Join(savePath, fileName);
         }
         public void PopulateData()
         {
-            var excelFiles = new List<string>(Directory.EnumerateFiles(RootPath, $"{DatePrefix}-*.xlsx", SearchOption.AllDirectories));
+            var excelFiles = new List<string>(Directory.EnumerateFiles(RootPath, $"{DatePrefix}*.xlsx", SearchOption.AllDirectories));
             excelFiles = excelFiles.Where(x => !x.Contains("Karla")).ToList();
             var excelList = excelFiles.Select(x => new FileSummary(x)).ToList();
 
 
-            var excelRegExpress = @".*\b(?:(?!Karla)\w)+\b.*\d{8}.*\d{6}.*xlsx";
+            var excelRegExpress = @".*\b(?:(?!Karla)\w)+\b.*\d{6,8}.*\d{6}.*xlsx";
             var filteredExcelFiles = excelFiles.Where(x => Regex.IsMatch(x, excelRegExpress)).ToList();
 
 
             // find pdf files for CC number if it exists
             var pdfFiles = new List<string>(Directory.EnumerateFiles(RootPath, $"{DatePrefix}*.pdf", SearchOption.AllDirectories));
-            var pdfRegExpression = @"\d{8}.*\d{6}.*pdf";
+            var pdfRegExpression = @"\d{6,8}.*\d{6}.*pdf";
             var filteredFiles = pdfFiles.Where(x => Regex.IsMatch(x, pdfRegExpression)).ToList();
 
             excelList.ForEach(file =>
@@ -121,7 +123,7 @@ namespace CreditCardSubmissionVerification
 
         private string getCreditCardNumberFromFileName(string fileName)
         {
-            var regExpress = @"\d{8}.*(\d{6})";
+            var regExpress = @"\d{6,8}.*(\d{6})";
             //var results = Regex.Matches(fileName, regExpress);
             var result = Regex.Match(fileName, regExpress);
             return result.Success ? result.Groups[1].Value : "XXXXXX";
